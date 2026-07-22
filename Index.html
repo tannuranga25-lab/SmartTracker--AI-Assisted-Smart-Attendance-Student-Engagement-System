@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartTracker | Minimalist Attendance</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* === MODERN MINIMALIST DESIGN SYSTEM === */
+        :root {
+            --bg-base: #09090b;       
+            --bg-card: #18181b;       
+            --bg-hover: #27272a;      
+            --border-light: #27272a;
+            
+            --text-main: #fafafa;     
+            --text-muted: #a1a1aa;    
+            
+            --primary: #6366f1;       
+            --success: #10b981;
+            --danger: #ef4444;
+            --reward: #f59e0b; /* Golden color for Incentive */
+            
+            --radius-lg: 20px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background-image: radial-gradient(var(--border-light) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        body::before {
+            content: ''; position: fixed; top: -150px; left: 50%; transform: translateX(-50%);
+            width: 600px; height: 300px; background: var(--primary);
+            filter: blur(150px); opacity: 0.15; z-index: -1; pointer-events: none;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 550px; 
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+            margin-bottom: 16px;
+        }
+
+        .title { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.03em; color: var(--text-main); margin-bottom: 8px; }
+        .subtitle { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5; }
+
+        .input-group { margin-bottom: 16px; text-align: left; }
+        .input-group label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+        .input-control {
+            width: 100%; padding: 12px 16px; background: var(--bg-base);
+            border: 1px solid var(--border-light); border-radius: var(--radius-md);
+            color: var(--text-main); font-size: 0.95rem; outline: none; transition: 0.2s ease;
+        }
+        .input-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15); }
+        .input-control::placeholder { color: #52525b; }
+        select.input-control { appearance: none; cursor: pointer; }
+
+        .btn {
+            width: 100%; padding: 14px; border-radius: var(--radius-md); font-size: 0.95rem; font-weight: 600;
+            cursor: pointer; border: none; transition: 0.2s ease; display: flex; justify-content: center; align-items: center; gap: 8px;
+        }
+        .btn-primary { background: var(--text-main); color: var(--bg-base); }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(255,255,255,0.1); }
+        .btn-primary:active { transform: scale(0.98); }
+        
+        .btn-secondary { background: var(--bg-hover); color: var(--text-main); border: 1px solid var(--border-light); margin-top: 12px; }
+        .btn-secondary:hover { background: #3f3f46; }
+
+        .btn-text { 
+            background: transparent; color: var(--text-muted); font-size: 0.85rem; 
+            padding: 8px 12px; border: none; cursor: pointer; transition: 0.2s; 
+            border-radius: var(--radius-sm); font-weight: 600;
+        }
+        .btn-text:hover { background: rgba(255,255,255,0.05); color: var(--text-main); }
+
+        .profile-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+        .avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--bg-hover); display: flex; justify-content: center; align-items: center; border: 1px solid var(--border-light); object-fit: cover; }
+        
+        .bento-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px; }
+        .bento-box { background: var(--bg-base); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 14px 10px; display: flex; flex-direction: column; justify-content: center; text-align: center;}
+        .bento-value { font-size: 1.3rem; font-weight: 800; color: var(--text-main); display: flex; align-items: center; justify-content: center; gap: 4px; }
+        .bento-label { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        .slot-list { display: flex; flex-direction: column; gap: 12px; }
+        .slot-item {
+            background: var(--bg-base); border: 1px solid var(--border-light); border-radius: var(--radius-md);
+            padding: 16px; transition: 0.3s;
+        }
+        .slot-item.active { border-color: var(--primary); box-shadow: 0 4px 20px rgba(99, 102, 241, 0.1); }
+        .slot-item.incentive { border-color: var(--reward); box-shadow: 0 4px 20px rgba(245, 158, 11, 0.15); background: rgba(245, 158, 11, 0.03); }
+        
+        .slot-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .slot-name { font-weight: 600; font-size: 0.95rem; }
+        .slot-status { font-size: 0.7rem; font-weight: 700; padding: 4px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        .status-active { background: rgba(99, 102, 241, 0.1); color: #818cf8; }
+        .status-done { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .status-incentive { background: rgba(245, 158, 11, 0.15); color: var(--reward); } 
+
+        .action-row { display: flex; gap: 8px; }
+        .pin-input {
+            flex: 1; padding: 10px; background: transparent; border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm); color: var(--text-main); font-family: monospace; font-size: 1.1rem;
+            letter-spacing: 8px; text-align: center; font-weight: 600; outline: none; transition: 0.2s;
+        }
+        .slot-item.active .pin-input:focus { border-color: var(--primary); }
+        .slot-item.incentive .pin-input { color: var(--reward); letter-spacing: 4px; border-color: rgba(245, 158, 11, 0.3); }
+        
+        .btn-mark {
+            padding: 0 20px; background: var(--text-main); color: var(--bg-base); border: none;
+            border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.85rem;
+        }
+        .btn-mark:hover { background: #e4e4e7; transform: scale(1.02); }
+        .btn-mark.success { background: var(--success); color: white; pointer-events: none; }
+        .btn-mark.incentive { background: linear-gradient(135deg, var(--reward), #fcd34d); color: #09090b; pointer-events: none; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); }
+
+        .segments { display: flex; background: var(--bg-base); padding: 4px; border-radius: var(--radius-md); border: 1px solid var(--border-light); margin-bottom: 20px; overflow-x: auto;}
+        .segment-btn { flex: 1; padding: 8px 10px; background: transparent; border: none; color: var(--text-muted); font-size: 0.8rem; font-weight: 600; border-radius: var(--radius-sm); cursor: pointer; transition: 0.2s; white-space: nowrap;}
+        .segment-btn.active { background: var(--bg-hover); color: var(--text-main); box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+
+        .hidden { display: none !important; }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .error-text { color: var(--danger); font-size: 0.8rem; font-weight: 500; margin-bottom: 16px; display: none; }
+
+        /* Report Table UI */
+        .saas-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: left; }
+        .saas-table th { padding: 10px; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-light); text-transform: uppercase; letter-spacing: 0.05em; }
+        .saas-table td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.02); color: var(--text-main); }
+        .saas-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 50; opacity: 0; visibility: hidden; transition: 0.2s; }
+        .modal-backdrop.show { opacity: 1; visibility: visible; }
+        .modal-panel { background: var(--bg-card); border: 1px solid var(--border-light); border-radius: var(--radius-lg); padding: 24px; width: 90%; max-width: 500px; transform: scale(0.95); transition: 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+        .modal-backdrop.show .modal-panel { transform: scale(1); }
+        
+        .list-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--border-light); font-size: 0.85rem; }
+        .list-item:last-child { border-bottom: none; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container" id="home-screen">
+        <div class="card" style="padding: 40px 24px;">
+            <div style="width: 48px; height: 48px; background: var(--bg-base); border: 1px solid var(--border-light); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-main)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            </div>
+            <h1 class="title">SmartTracker</h1>
+            <p class="subtitle">A clean, frictionless way to manage your daily attendance.</p>
+            
+            <button class="btn btn-primary" onclick="goToScreen('login-screen')">Student Portal</button>
+            <button class="btn btn-secondary" onclick="openAdminAuth()">Admin Console</button>
+        </div>
+    </div>
+
+    <div class="app-container hidden" id="login-screen">
+        <div class="card">
+            <h2 class="title" style="font-size: 1.5rem;">Sign In</h2>
+            <p class="subtitle" style="margin-bottom: 24px;">Enter your credentials to continue.</p>
+
+            <div class="input-group">
+                <label>Admission ID</label>
+                <input type="text" id="loginAdmNo" class="input-control" placeholder="BCA1001" style="text-transform: uppercase;">
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="loginPassword" class="input-control" placeholder="••••••••">
+            </div>
+            
+            <div id="loginError" class="error-text">Invalid ID or Password.</div>
+
+            <button class="btn btn-primary" onclick="handleLogin()">Continue</button>
+            <button class="btn-text" style="width: 100%; margin-top: 8px;" onclick="goToScreen('home-screen')">Back to Home</button>
+        </div>
+    </div>
+
+    <div class="app-container hidden" id="dashboard-screen">
+        
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+            <div class="profile-header" style="margin-bottom: 0;">
+                <img id="userAvatar" class="avatar" src="" alt="Profile">
+                <div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 500;" id="dynamicGreeting">Good Morning</div>
+                    <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);" id="greetingName">Student Name</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;" id="greetingDetails">D/O Father | Email</div>
+                </div>
+            </div>
+            <button class="btn-text" style="color: var(--danger);" onclick="handleLogout()" title="Logout">Log out</button>
+        </div>
+
+        <div class="bento-grid">
+            <div class="bento-box">
+                <div class="bento-value"><span style="color: var(--warning); margin-right: 4px;">🔥</span><span id="streakCount">0</span></div>
+                <div class="bento-label">Streak</div>
+            </div>
+            <div class="bento-box">
+                <div class="bento-value"><span style="color: var(--success); margin-right: 4px;">✓</span><span id="attendedCount">0</span></div>
+                <div class="bento-label">Attended</div>
+            </div>
+            <div class="bento-box">
+                <div class="bento-value"><span style="color: var(--reward); margin-right: 4px;">🎁</span><span id="incentiveCount">0</span></div>
+                <div class="bento-label">Incentives</div>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">Today's Schedule</h3>
+            <button class="btn-text" style="padding: 4px 8px; color: var(--primary);" onclick="openStudentReportModal()">View Analytics</button>
+        </div>
+
+        <div class="slot-list">
+            <div class="slot-item active" id="slot-morning">
+                <div class="slot-header">
+                    <div class="slot-name">Morning Session</div>
+                    <div class="slot-status status-active" id="badge-morning">Active</div>
+                </div>
+                <div class="action-row">
+                    <input type="text" id="code-morning" class="pin-input" placeholder="••••" maxlength="4">
+                    <button class="btn-mark" id="btn-morning" onclick="markAttendance('Morning', 'morning')">Verify</button>
+                </div>
+            </div>
+
+            <div class="slot-item active" id="slot-afternoon">
+                <div class="slot-header">
+                    <div class="slot-name">Afternoon Session</div>
+                    <div class="slot-status status-active" id="badge-afternoon">Active</div>
+                </div>
+                <div class="action-row">
+                    <input type="text" id="code-afternoon" class="pin-input" placeholder="••••" maxlength="4">
+                    <button class="btn-mark" id="btn-afternoon" onclick="markAttendance('Afternoon', 'afternoon')">Verify</button>
+                </div>
+            </div>
+
+            <div class="slot-item active" id="slot-evening">
+                <div class="slot-header">
+                    <div class="slot-name">Evening Session</div>
+                    <div class="slot-status status-active" id="badge-evening">Active</div>
+                </div>
+                <div class="action-row">
+                    <input type="text" id="code-evening" class="pin-input" placeholder="••••" maxlength="4">
+                    <button class="btn-mark" id="btn-evening" onclick="markAttendance('Evening', 'evening')">Verify</button>
+                </div>
+            </div>
+
+            <div class="slot-item active" id="slot-sunday">
+                <div class="slot-header">
+                    <div class="slot-name">Sunday Session</div>
+                    <div class="slot-status status-active" id="badge-sunday">Active</div>
+                </div>
+                <div class="action-row">
+                    <input type="text" id="code-sunday" class="pin-input" placeholder="••••" maxlength="4">
+                    <button class="btn-mark" id="btn-sunday" onclick="markAttendance('Sunday', 'sunday')">Verify</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TEACHER CONSOLE -->
+    <div class="app-container hidden" id="teacher-screen">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 class="title" style="font-size: 1.4rem; margin:0;">Admin Console</h2>
+                <button class="btn-text" style="color: var(--text-muted); font-weight: 600;" onclick="goToScreen('home-screen')">Close Admin</button>
+            </div>
+
+            <div class="segments">
+                <button class="segment-btn active" id="btn-tab-passcode" onclick="switchTab('passcode')">Host</button>
+                <button class="segment-btn" id="btn-tab-register" onclick="switchTab('register')">Add Student</button>
+                <button class="segment-btn" id="btn-tab-incentive" onclick="switchTab('incentive')">Incentive</button>
+                <button class="segment-btn" id="btn-tab-report" onclick="switchTab('report')">Analytics</button>
+            </div>
+
+            <!-- Host -->
+            <div id="tab-passcode">
+                <div class="input-group">
+                    <label>Select Session</label>
+                    <select id="teacherSlotSelect" class="input-control">
+                        <option value="morning">Morning Session</option>
+                        <option value="afternoon">Afternoon Session</option>
+                        <option value="evening">Evening Session</option>
+                        <option value="sunday">Sunday Session</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="generateTeacherCode()">Generate Secure PIN</button>
+                <div id="generatedCodeDisplay" style="font-size: 3rem; font-weight: 800; margin-top: 24px; letter-spacing: 12px; color: var(--text-main); font-family: monospace; display: none;"></div>
+            </div>
+
+            <!-- Add Student -->
+            <div id="tab-register" class="hidden" style="text-align: left;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;" id="formHeaderText">Register new students here.</p>
+                    <div style="background: rgba(99, 102, 241, 0.1); color: #818cf8; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(99, 102, 241, 0.2);" id="totalStudentsBadge">0 Students</div>
+                </div>
+                <div class="input-group"><label>Student Full Name</label><input type="text" id="regName" class="input-control" placeholder="e.g. John Doe"></div>
+                <div class="two-col">
+                    <div class="input-group"><label>Admission ID (Cannot change during edit)</label><input type="text" id="regAdmNo" class="input-control" style="text-transform: uppercase;" placeholder="BCA1001"></div>
+                    <div class="input-group"><label>Login Password</label><input type="password" id="regPassword" class="input-control" placeholder="••••••••"></div>
+                </div>
+                <div class="two-col">
+                    <div class="input-group"><label>Father's Name</label><input type="text" id="regFName" class="input-control" placeholder="e.g. Mr. Smith"></div>
+                    <div class="input-group"><label>Email ID</label><input type="email" id="regEmail" class="input-control" placeholder="student@college.edu"></div>
+                </div>
+                <div class="input-group">
+                    <label>Student Photo (Upload from Device)</label>
+                    <input type="file" id="regPhotoFile" class="input-control" accept="image/*" style="padding: 9px 16px; cursor: pointer;">
+                    <input type="hidden" id="regPhotoBase64">
+                    <div id="photoPreview" style="margin-top: 10px; display: none; align-items: center;">
+                        <img id="photoPreviewImg" src="" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);">
+                        <span id="photoPreviewText" style="font-size: 0.8rem; color: var(--text-muted); margin-left: 10px;">Photo loaded</span>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button class="btn btn-primary" id="btn-submit-student" onclick="saveStudent()">Register Student ✅</button>
+                    <button class="btn btn-secondary hidden" id="btn-cancel-edit" onclick="cancelEdit()">Cancel</button>
+                    <button class="btn btn-secondary hidden" id="btn-delete-student" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.3);" onclick="deleteStudent()">Delete</button>
+                </div>
+                
+                <!-- Registered Students List -->
+                <div style="margin-top: 32px; border-top: 1px solid var(--border-light); padding-top: 16px;">
+                    <h3 style="font-size: 0.95rem; font-weight: 600; color: var(--text-main); margin-bottom: 12px;">Registered Students List</h3>
+                    <div id="registeredStudentsList" style="max-height: 200px; overflow-y: auto; background: var(--bg-base); border-radius: var(--radius-sm); border: 1px solid var(--border-light);">
+                        <!-- Student list will be rendered here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Incentive (Reward Leave) -->
+            <div id="tab-incentive" class="hidden" style="text-align: left;">
+                <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 20px;">Grant "Incentive" (Leave/Reward) to a student. Default is Absent if they miss class, but Incentive counts positively.</p>
+                <div class="input-group">
+                    <label>Target Student Admission ID</label>
+                    <input type="text" id="incentiveAdmNo" class="input-control" placeholder="e.g. BCA1001" style="text-transform: uppercase;">
+                </div>
+                <div class="input-group">
+                    <label>Select Slot / Full Day</label>
+                    <select id="incentiveSlotSelect" class="input-control">
+                        <option value="Full Day">🎉 Full Day Incentive</option>
+                        <option value="Morning">Morning Session Only</option>
+                        <option value="Afternoon">Afternoon Session Only</option>
+                        <option value="Evening">Evening Session Only</option>
+                        <option value="Sunday">Sunday Session Only</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" style="margin-top: 10px; background: linear-gradient(135deg, var(--reward), #fcd34d); color: #09090b; box-shadow: 0 4px 15px rgba(245,158,11,0.3);" onclick="grantIncentive()">Grant Incentive 🎉</button>
+            </div>
+
+            <!-- Analytics Dashboard -->
+            <div id="tab-report" class="hidden">
+                <div class="two-col" style="margin-bottom: 16px;">
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label>Filter Time Period</label>
+                        <select id="adminReportFilter" class="input-control" onchange="generateTeacherReport()">
+                            <option value="daily">Daily (Today)</option>
+                            <option value="weekly">Weekly (Last 7 Days)</option>
+                            <option value="monthly">Monthly (Last 30 Days)</option>
+                            <option value="semester">Semester (Last 6 Months)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Slot Summary Cards (Grid updated for 4 slots) -->
+                <div class="bento-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 16px; gap: 8px;">
+                    <div class="bento-box" style="padding: 10px;"><div class="bento-value" style="font-size:1.1rem;"><span style="font-size:0.9rem;">☀️</span> <span id="summaryMorning">0</span></div><div class="bento-label" style="font-size: 0.65rem;">Morning</div></div>
+                    <div class="bento-box" style="padding: 10px;"><div class="bento-value" style="font-size:1.1rem;"><span style="font-size:0.9rem;">🌤️</span> <span id="summaryAfternoon">0</span></div><div class="bento-label" style="font-size: 0.65rem;">Afternoon</div></div>
+                    <div class="bento-box" style="padding: 10px;"><div class="bento-value" style="font-size:1.1rem;"><span style="font-size:0.9rem;">🌙</span> <span id="summaryEvening">0</span></div><div class="bento-label" style="font-size: 0.65rem;">Evening</div></div>
+                    <div class="bento-box" style="padding: 10px;"><div class="bento-value" style="font-size:1.1rem;"><span style="font-size:0.9rem;">📅</span> <span id="summarySunday">0</span></div><div class="bento-label" style="font-size: 0.65rem;">Sunday</div></div>
+                </div>
+
+                <div id="teacherReportContainer" style="max-height: 200px; overflow-y: auto; background: var(--bg-base); border-radius: var(--radius-sm); border: 1px solid var(--border-light); margin-bottom: 16px;"></div>
+                
+                <button class="btn btn-primary" id="teacherExportBtn" style="display:none;" onclick="exportTeacherReport()">Download Full Report (CSV)</button>
+            </div>
+            
+            <div style="margin-top: 24px; border-top: 1px solid var(--border-light); padding-top: 16px; text-align: center;">
+                <button class="btn-secondary" style="border-color: rgba(239, 68, 68, 0.3); color: var(--danger);" onclick="factoryReset()">⚠️ Erase Database & Reset System</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- === MODALS === -->
+    <div class="modal-backdrop" id="adminAuthModal">
+        <div class="modal-panel">
+            <h3 style="font-size: 1.2rem; margin-bottom: 16px; font-weight: 700;">Admin Access Required</h3>
+            <div class="input-group">
+                <input type="password" id="adminAuthInput" class="input-control" placeholder="Enter password (admin123)">
+            </div>
+            <div id="adminAuthError" class="error-text">Unauthorized access. Try again.</div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-secondary" style="margin: 0;" onclick="closeAdminAuth()">Cancel</button>
+                <button class="btn btn-primary" style="margin: 0;" onclick="verifyAdmin()">Unlock Dashboard</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Personal Analytics Modal -->
+    <div class="modal-backdrop" id="studentReportModal">
+        <div class="modal-panel" style="max-width: 500px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="font-size: 1.2rem; font-weight: 700;">My Analytics Dashboard</h3>
+                <button class="btn-text" style="padding: 0; font-size: 1.2rem; color: var(--danger);" onclick="closeStudentReportModal()">✕</button>
+            </div>
+
+            <div class="input-group" style="margin-bottom: 16px;">
+                <select id="studentReportFilter" class="input-control" onchange="generateStudentReport()">
+                    <option value="daily">Daily (Today)</option>
+                    <option value="weekly">Weekly (Last 7 Days)</option>
+                    <option value="monthly">Monthly (Last 30 Days)</option>
+                    <option value="semester">Semester (Last 6 Months)</option>
+                </select>
+            </div>
+
+            <!-- Student Personal Summary -->
+            <div class="bento-grid" style="grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px;">
+                <div class="bento-box" style="padding:10px;"><div class="bento-value" style="font-size:1.1rem; color:var(--success);"><span id="stuAttended">0</span></div><div class="bento-label" style="font-size:0.6rem;">Present</div></div>
+                <div class="bento-box" style="padding:10px;"><div class="bento-value" style="font-size:1.1rem; color:var(--reward);"><span id="stuIncentives">0</span></div><div class="bento-label" style="font-size:0.6rem;">Incentives</div></div>
+                <div class="bento-box" style="padding:10px;"><div class="bento-value" style="font-size:1.1rem; color:var(--danger);"><span id="stuAbsents">0</span></div><div class="bento-label" style="font-size:0.6rem;">Absent</div></div>
+                <div class="bento-box" style="padding:10px;"><div class="bento-value" style="font-size:1.1rem; color:var(--primary);"><span id="stuPercentage">0%</span></div><div class="bento-label" style="font-size:0.6rem;">Score</div></div>
+            </div>
+
+            <div id="studentHistoryContainer" style="max-height: 250px; overflow-y: auto; background: var(--bg-base); border-radius: var(--radius-sm); border: 1px solid var(--border-light); margin-bottom: 16px;"></div>
+            <button class="btn btn-secondary" style="margin: 0;" onclick="exportStudentCSV()">Export Data (CSV)</button>
+        </div>
+    </div>
+
+    <!-- === JAVASCRIPT === -->
+    <script>
+        function initDemo() {
+            let students = JSON.parse(localStorage.getItem('registeredStudents')) || [];
+            if(students.length === 0) {
+                students.push({ 
+                    name: "Demo Student", 
+                    admNo: "ID1001", 
+                    password: "123", 
+                    fname: "Mr. Sharma", 
+                    email: "student@example.com",
+                    photo: "" 
+                });
+                localStorage.setItem('registeredStudents', JSON.stringify(students));
+            }
+        }
+        initDemo();
+
+        function goToScreen(screenId) {
+            document.querySelectorAll('.app-container').forEach(el => el.classList.add('hidden'));
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        function openAdminAuth() {
+            document.getElementById('adminAuthInput').value = "";
+            document.getElementById('adminAuthError').style.display = "none";
+            document.getElementById('adminAuthModal').classList.add('show');
+        }
+        function closeAdminAuth() { document.getElementById('adminAuthModal').classList.remove('show'); }
+        
+        function verifyAdmin() {
+            if(document.getElementById('adminAuthInput').value === "admin123") {
+                closeAdminAuth(); goToScreen('teacher-screen');
+                generateTeacherReport(); 
+                updateTotalStudentsCount();
+                renderRegisteredStudentsList();
+            } else {
+                document.getElementById('adminAuthError').style.display = "block";
+            }
+        }
+
+        function switchTab(tabId) {
+            ['passcode', 'register', 'incentive', 'report'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`btn-tab-${t}`).classList.remove('active');
+            });
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            document.getElementById(`btn-tab-${tabId}`).classList.add('active');
+            if(tabId === 'report') generateTeacherReport();
+        }
+
+        function handleLogin() {
+            const adm = document.getElementById('loginAdmNo').value.trim().toUpperCase();
+            const pwd = document.getElementById('loginPassword').value.trim();
+            const students = JSON.parse(localStorage.getItem('registeredStudents')) || [];
+            const user = students.find(s => s.admNo === adm && s.password === pwd);
+            
+            if(user) {
+                localStorage.setItem("activeUser", user.admNo);
+                document.getElementById('loginError').style.display = "none";
+                loadDashboard(user);
+                goToScreen('dashboard-screen');
+            } else {
+                document.getElementById('loginError').style.display = "block";
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem("activeUser");
+            goToScreen('home-screen');
+        }
+
+        function loadDashboard(user) {
+            const avatarUrl = user.photo || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}&backgroundColor=6366f1&textColor=ffffff`;
+            document.getElementById('userAvatar').src = avatarUrl;
+            
+            document.getElementById('greetingName').textContent = user.name;
+            
+            let detailsStr = "";
+            if(user.fname) detailsStr += `D/O ${user.fname} `;
+            if(user.email) detailsStr += (detailsStr ? `| ` : '') + user.email;
+            document.getElementById('greetingDetails').textContent = detailsStr || "Student Account";
+
+            const hr = new Date().getHours();
+            const msg = hr < 12 ? "Good Morning" : hr < 17 ? "Good Afternoon" : "Good Evening";
+            document.getElementById('dynamicGreeting').textContent = msg;
+            
+            refreshStats(user.admNo);
+            restoreSlotStates(user.admNo);
+        }
+
+        function restoreSlotStates(admNo) {
+            const history = JSON.parse(localStorage.getItem('attendanceHistory')) || [];
+            const today = new Date().toLocaleDateString('en-US');
+            const slots = ['morning', 'afternoon', 'evening', 'sunday']; 
+
+            slots.forEach(slotId => {
+                const slotName = slotId.charAt(0).toUpperCase() + slotId.slice(1);
+                const record = history.find(h => h.studentId === admNo && h.date === today && h.slot.includes(slotName));
+                
+                const input = document.getElementById(`code-${slotId}`);
+                const btn = document.getElementById(`btn-${slotId}`);
+                const badge = document.getElementById(`badge-${slotId}`);
+                const card = document.getElementById(`slot-${slotId}`);
+
+                if (record) {
+                    input.disabled = true; btn.disabled = true;
+                    if (record.status === "Incentive 🎉") {
+                        input.value = "INCN";
+                        btn.textContent = "Enjoy 🎉"; btn.className = "btn-mark incentive";
+                        badge.textContent = "Incentive"; badge.className = "slot-status status-incentive";
+                        card.className = "slot-item incentive";
+                    } else {
+                        input.value = "DONE";
+                        btn.textContent = "Verified"; btn.className = "btn-mark success";
+                        badge.textContent = "Done"; badge.className = "slot-status status-done";
+                        card.className = "slot-item active";
+                    }
+                } else {
+                    input.value = ""; input.disabled = false;
+                    btn.textContent = "Verify"; btn.className = "btn-mark"; btn.disabled = false;
+                    badge.textContent = "Active"; badge.className = "slot-status status-active";
+                    card.className = "slot-item active";
+                }
+            });
+        }
+
+        function refreshStats(admNo) {
+            const history = JSON.parse(localStorage.getItem('attendanceHistory')) || [];
+            const myHistory = history.filter(h => h.studentId === admNo);
+            
+            let attended = 0;
+            let incentives = 0;
+            myHistory.forEach(h => {
+                if(h.status === "Incentive 🎉") incentives++;
+                else attended++;
+            });
+
+            document.getElementById('attendedCount').textContent = attended;
+            document.getElementById('incentiveCount').textContent = incentives;
+
+            // 🐛 FIX 1: Bulletproof Streak Logic (Safe from Daylight Saving Time bugs)
+            let uniqueDates = [...new Set(myHistory.map(h => h.date))].sort((a,b) => new Date(b) - new Date(a));
+            let streak = 0;
+            if(uniqueDates.length > 0) {
+                let check = new Date(uniqueDates[0]); check.setHours(0,0,0,0);
+                let today = new Date(); today.setHours(0,0,0,0);
+                const msPerDay = 1000 * 60 * 60 * 24;
+                let diffDays = Math.round((today - check) / msPerDay);
+
+                if(diffDays <= 1) { // Keeps streak alive if last attendance was today or yesterday
+                    streak = 1;
+                    for(let i=1; i<uniqueDates.length; i++) {
+                        let prev = new Date(uniqueDates[i]); prev.setHours(0,0,0,0);
+                        let dayDiff = Math.round((check - prev) / msPerDay);
+                        if(dayDiff === 1) { streak++; check = prev; } else break;
+                    }
+                }
+            }
+            document.getElementById('streakCount').textContent = streak; 
+            
+            // Percentage capped at 100%
+            let perc = Math.round(((attended + incentives) / 30) * 100);
+            if(perc > 100) perc = 100;
+            document.getElementById('attendancePercent').textContent = perc + "%";
+        }
+
+        function markAttendance(slotName, slotId) {
+            const input = document.getElementById(`code-${slotId}`);
+            const code = input.value.trim();
+            const actual = localStorage.getItem(`teacherCode_${slotId}`);
+            
+            if(code === actual && actual) {
+                const adm = localStorage.getItem("activeUser");
+                const history = JSON.parse(localStorage.getItem('attendanceHistory')) || [];
+                const today = new Date().toLocaleDateString('en-US');
+                
+                if(history.find(h => h.studentId === adm && h.date === today && h.slot === slotName)) {
+                    alert("Already marked for this session."); return;
+                }
+                
+                history.push({ studentId: adm, date: today, slot: slotName, time: new Date().toLocaleTimeString('en-US'), status: "Present" });
+                localStorage.setItem('attendanceHistory', JSON.stringify(history));
+                
+                restoreSlotStates(adm); 
+                refreshStats(adm);
+            } else {
+                alert("Incorrect PIN.");
+            }
+        }
+
+        function grantIncentive() {
+            const adm = document.getElementById('incentiveAdmNo').value.trim().toUpperCase();
+            const duration = document.getElementById('incentiveSlotSelect').value;
+            const students = JSON.parse(localStorage.getItem('registeredStudents')) || [];
+
+            if(!adm) { alert("Please enter Admission ID."); return; }
+            if(!students.find(s => s.admNo === adm)) { alert("Student not found."); return; }
+
+            const history = JSON.parse(localStorage.getItem('attendanceHistory')) || [];
+            const today = new Date().toLocaleDateString('en-US');
+            const timeStr = new Date().toLocaleTimeString('en-US');
+
+            const addIncentive = (slotName) => {
+                const existingIndex = history.findIndex(h => h.studentId === adm && h.date === today && h.slot === slotName);
+                if(existingIndex > -1) {
+                    history[existingIndex].status = "Incentive 🎉"; 
+                } else {
+                    history.push({ studentId: adm, date: today, slot: slotName, time: timeStr, status: "Incentive 🎉" });
+                }
+            };
+
+            if (duration === "Full Day") {
+                addIncentive("Morning"); addIncentive("Afternoon"); addIncentive("Evening"); addIncentive("Sunday");
+            } else {
+                addIncentive(duration);
+            }
+
+            localStorage.setItem('attendanceHistory', JSON.stringify(history));
+            alert(`🎉 Incentive granted to ${adm} for ${duration}!`);
+            document.getElementById('incentiveAdmNo').value = "";
+        }
+
+        function filterHistoryByPeriod(historyArray, period) {
+            const now = new Date();
+            now.setHours(0,0,0,0);
+            
+            return historyArray.filter(record => {
+                const recordDate = new Date(record.date);
+                recordDate.setHours(0,0,0,0);
+                const diffDays = Math.ceil(Math.abs(now - recordDate) / (1000 * 60 * 60 * 24));
+
+                if (period === 'daily') return diffDays === 0;
+                if (period === 'weekly') return diffDays <= 7;
+                if (period === 'monthly') return diffDays <= 30;
+                if (period === 'semester') return diffDays <= 180;
+                return true;
+            });
+        }
+
+        function getTotalSlotsForPeriod(period) {
+            if (period === 'daily') return 4;
+            if (period === 'weekly') return 28;
+            if (period === 'monthly') return 120;
+            if (period === 'semester') return 720;
+            return 40; 
+        }
+
+        function generateTeacherReport() {
+            const history = JSON.parse(localStorage.getItem('attendanceHistory')) || [];
+            const students = JSON.parse(localStorage.getItem('registeredStudents')) || [];
+            const period = document.getElementById('adminReportFilter').value;
+            const container = document.getElementById('teacherReportContainer');
+            const exportBtn = document.getElementById('teacherExportBtn');
+
+            const filteredHistory = filterHistoryByPeriod(history, period);
+
+            if(filteredHistory.length === 0) { 
+                document.getElementById('summaryMorning').textContent = 0;
+                document.getElementById('summaryAfternoon').textContent = 0;
+                document.getElementById('summaryEvening').textContent = 0;
+                document.getElementById('summarySunday').textContent = 0;
+                container.innerHTML = "<div style='padding:20px; text-align:center; color:var(--text-muted);'>No attendance records found for this period.</div>"; 
+                exportBtn.style.display = "none";
+                return; 
+            }
+
+            let morningCount = 0, afternoonCount = 0, eveningCount = 0, sundayCount = 0;
+            filteredHistory.forEach(h => {
+                if(h.slot.includes("Morning")) morningCount++;
+                if(h.slot.includes("Afternoon")) afternoonCount++;
+                if(h.slot.includes("Evening")) eveningCount++;
+                if(h.slot.includes("Sunday")) sundayCount++;
+            });
+            document.getElementById('summaryMorning').textContent = morningCount;
+            document.getElementById('summaryAfternoon').textContent = afternoonCount;
+            document.getElementById('summaryEvening').textContent = eveningCount;
+            document.getElementById('summarySunday').textContent = sundayCount;
+
+            const totalSlots = getTotalSlotsForPeriod(period);
+            let studentStats = {};
+            
+            students.forEach(s => {
+                studentStats[s.admNo] = { name: s.name, present: 0, incentive: 0 };
+            });
+
+            filteredHistory.forEach(h => {
+                if(studentStats[h.studentId]) {
+                    if(h.status === "Incentive 🎉") studentStats[h.studentId].incentive++;
+                    else studentStats[h.studentId].present++;
+                }
+            });
+
+            let html = `
+                <table class="saas-table">
+                    <thead><tr><th>Student</th><th>Present</th><th>Incentive</th><th>Score</th></tr></thead>
+                    <tbody>
+            `;
+
+            for (const [admNo, stats] of Object.entries(studentStats)) {
+                let totalScore = stats.present + stats.incentive;
+                let percentage = Math.round((totalScore / totalSlots) * 100);
+                if(percentage > 100) percentage = 100;
+                
+                let scoreColor = percentage >= 75 ? "var(--success)" : (percentage >= 50 ? "var(--warning)" : "var(--danger)");
+                
+                html += `
+                    <tr>
+                        <td><div style="font-weight:600;">${stats.name}</div><div style="font-size:0.65rem; color:var(--text-muted);">${admNo}</div></td>
+                        <td>${stats.present}</td>
+                        <td style="color:var(--reward);">${stats.incentive}</td>
+                        <td style="color:${scoreColor}; font-weight:800;">${percentage}%</td>
+                    </tr>
+                `;
+            }
+            html += "</tbody></table>";
+            
+            container.innerHTML = html;
+            exportBtn.style.display = "block";
+        }
+
+        function openStudentReportModal() { 
+            document.getElementById('studentReportModal').classList.add('show'); 
+            generateStudentReport(); 
+        }
+        function closeStudentReportModal() { document.getElementById('studentReportModal').classList.remove('show'); }
+
+        function generateStudentReport() {
+            const admNo = localStorage.getItem("activeUser");
+            const history = JSON.parse(localStorage.getItem('attendanceHistory')) || [];
+            const period = document.getElementById('studentReportFilter').value;
+            const container = document.getElementById('studentHistoryContainer');
+            
+            const myFullHistory = history.filter(h => h.studentId === admNo);
+            const filteredHistory = filterHistoryByPeriod(myFullHistory, period);
+
+            const totalSlots = getTotalSlotsForPeriod(period);
+            let presentCount = 0;
+            let incentiveCount = 0;
+
+            filteredHistory.forEach(h => {
+                if(h.status === "Incentive 🎉") incentiveCount++;
+                else presentCount++;
+            });
+
+            let absentCount = totalSlots - (presentCount + incentiveCount);
+            if(absentCount < 0) absentCount = 0;
+
+            let percentage = Math.round(((presentCount + incentiveCount) / totalSlots) * 100);
+            if(percentage > 100) percentage = 100;
+
+            document.getElementById('stuAttended').textContent = presentCount;
+            document.getElementById('stuIncentives').textContent = incentiveCount;
+            document.getElementById('stuAbsents').textContent = absentCount;
+            document.getElementById('stuPercentage').textContent = percentage + "%";
+            document.getElementById('stuPercentage').style.color = percentage >= 75 ? "var(--success)" : (percentage >= 50 ? "var(--warning)" : "var(--danger)");
+
+            if(filteredHistory.length === 0) {
+                container.innerHTML = "<div style='padding:20px; text-align:center; color:var(--text-muted); font-size:0.85rem;'>No activities recorded for this period.</div>";
+                return;
+            }
+
+            container.innerHTML = filteredHistory.reverse().map(r => `
+                <div class="list-item">
+                    <div><strong style="color:var(--text-main);">${r.slot}</strong><br><span style="color:var(--text-muted); font-size:0.75rem;">${r.date} | ${r.time}</span></div>
+                    <div style="color:${r.status === 'Incentive 🎉' ? 'var(--reward)' : 'var(--success)'}; font-weight:700;">${r.status}</div>
+                </div>
+            `).join('');
+        }
+
+        function generateTeacherCode() {
+            const slot = document.getElementById('teacherSlotSelect').value;
+            const code = Math.floor(1000 + Math.random() * 9000).toString();
+            localStorage.setItem(`teacherCode_${slot}`, code);
+            const disp = document.getElementById('generatedCodeDisplay');
+            disp.textContent = code; disp.style.display = "block";
+        }
+
+        // --- NEW: Photo Upload Handler ---
+        document.getElementById('regPhotoFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.size > 2 * 1024 * 1024) { // Limit to 2MB
+                    alert('File is too large! Please choose an image under 2MB.');
+                    this.value = '';
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('regPhotoBase64').value = event.target.result;
+                    document.getElementById('photoPreviewImg').src = event.target.result;
+                    document.getElementById('photoPreviewText').textContent = "New photo ready to save";
+                    document.getElementById('photoPreview').style.display = "flex";
+                };
+                reader.readAsDataURL(file);
+            } else {
+                document.getElementById('regPhotoBase64').value = '';
+                document.getElementById('photoPreview').style.display = "none";
+            }
+        });
+
+        let editingAdmNo = null;
+
+        function saveStudent() {
+            const name = document.getElementById('regName').value.trim();
+            const adm = document.getElementById('regAdmNo').value.trim().toUpperCase();
+            const pwd = document.getElementById('regPassword').value.trim();
+            const fname = document.getElementById('regFName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const photo = document.getElementById('regPhotoBase64').value.trim(); // Changed to use Base64
+
+            if(!name || !adm || !pwd) { alert("Name, Admission ID and Password are required."); return; }
+            let students = JSON.parse(localStorage.getItem('registeredStudents')) || [];
+            
+            if (editingAdmNo) {
+                const index = students.findIndex(s => s.admNo === editingAdmNo);
+                if(index !== -1) {
+                    students[index] = { name, admNo: editingAdmNo, password: pwd, fname, email, photo };
+                    localStorage.setItem('registeredStudents', JSON.stringify(students));
+                    alert("Student details updated successfully! ✅");
+                    cancelEdit(); 
+                }
+            } else {
+                if(students.find(s => s.admNo === adm)) { alert("This Admission ID is already registered!"); return; }
+                students.push({ name, admNo: adm, password: pwd, fname, email, photo });
+                localStorage.setItem('registeredStudents', JSON.stringify(students));
+                alert("New Student Registered Successfully! 🎉");
+                cancelEdit(); 
+            }
+            
+            updateTotalStudentsCount(); 
+            renderRegisteredStudentsList();
+        }
+
+        function editStudent(admNo) {
+            const students = JSON.parse(localStorage.getItem('registeredStudents')) || [];
+            const user = students.find(s => s.admNo === admNo);
+            if(!user) return;
+
+            document.getElementById('regName').value = user.name || '';
+            document.getElementById('regAdmNo').value = user.admNo;
+            document.getElementById('regPassword').value = user.password || '';
+            document.getElementById('regFName').value = user.fname || '';
+            document.getElementById('regEmail').value = user.email || '';
+            
+            // Handle Photo Preview for Edit Mode
+            document.getElementById('regPhotoFile').value = ''; 
+            document.getElementById('regPhotoBase64').value = user.photo || '';
+            if (user.photo) {
+                document.getElementById('photoPreviewImg').src = user.photo;
+                document.getElementById('photoPreviewText').textContent = "Current photo (Select new to change)";
+                document.getElementById('photoPreview').style.display = "flex";
+            } else {
+                document.getElementById('photoPreview').style.display = "none";
+            }
+
+            document.getElementById('regAdmNo').disabled = true;
+            document.getElementById('regAdmNo').style.opacity = '0.5';
+
+            document.getElementById('formHeaderText').textContent = `Editing details for ${user.name}`;
+            document.getElementById('formHeaderText').style.color = 'var(--warning)';
+            document.getElementById('btn-submit-student').textContent = "Update Student ✅";
+            document.getElementById('btn-submit-student').style.background = "linear-gradient(135deg, var(--warning), #fcd34d)";
+            document.getElementById('btn-submit-student').style.color = "#09090b";
+            
+            document.getElementById('btn-cancel-edit').classList.remove('hidden');
+            document.getElementById('btn-delete-student').classList.remove('hidden');
+
+            editingAdmNo = admNo;
+        }
+
+        function cancelEdit() {
+            editingAdmNo = null;
+            ['regName', 'regAdmNo', 'regPassword', 'regFName', 'regEmail', 'regPhotoFile', 'regPhotoBase64'].forEach(id => {
+                if(document.getElementById(id)) document.getElementById(id).value = '';
+            });
+            document.getElementById('photoPreview').style.display = "none";
+            
+            document.getElementById('regAdmNo').disabled = false;
+            document.getElementById('regAdmNo').style.opacity = '1';
+
+            document.getElementById('formHeaderText').textContent = "Register new students here.";
+            document.getElementById('formHeaderText').style.color = 'var(--text-muted)';
+            document.getElementById('btn-submit-student').textContent = "Register Student ✅";
+            document.getElementById('btn-submit-student').style.background = "var(--text-main)";
+            document.getElementById('btn-submit-student').style.color = "var(--bg-base)";
+
+            document.getElementById('btn-cancel-edit').classList.add('hidden');
+            document.getElementById('btn-delete-student').classList.add('hidden');
+        }
+
+        function deleteStudent() {
+            if(!editingAdmNo) return;
+            if(confirm(`Are you sure you want to delete the student with ID: ${editingAdmNo}? This will not delete their past attendance.`)) {
+                let students = JSON.parse(localStorage.getItem('registeredStudents')) || [];
+                students = students.filter(s => s.admNo !== editingAdmNo);
+                localStorage.setItem('registeredStudents', JSON.stringify(students));
+                
+                alert("Student deleted from the system.");
+                cancelEdit();
+                updateTotalStudentsCount(); 
+                renderRegisteredStudentsList();
+            }
+        }
+
+        function updateTotalStudentsCount() {
+            const students = JSON.parse(localStorage.getItem('registeredStudents')) || [];
+            const badge = document.getElementById('totalStudentsBadge');
+            if(badge) {
+                badge.textContent = `${students.length} Student${students.length !== 1 ? 's' : ''} Registered`;
+            }
+        }
+
+        function renderRegisteredStudentsList() {
+            const students = JSON.parse(localStorage.getItem('registeredStudents')) || [];
+            const container = document.getElementById('registeredStudentsList');
+            
+            if (students.length === 0) {
+                container.innerHTML = "<div style='padding:16px; text-align:center; color:var(--text-muted); font-size:0.85rem;'>No students registered yet.</div>";
+                return;
+            }
+
+            container.innerHTML = students.map(s => `
+                <div class="list-item" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <div>
+                            <strong style="color:var(--text-main); font-size:0.9rem;">${s.name}</strong>
+                            <span style="color:var(--primary); font-weight:700; font-size:0.75rem; margin-left:8px; border: 1px solid var(--border-light); padding: 2px 6px; border-radius: 4px;">${s.admNo}</span>
+                        </div>
+                        <button class="btn-text" style="padding: 4px 10px; color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3);" onclick="editStudent('${s.admNo}')">Edit / Info</button>
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top: 4px;">
+                        Password: <span style="color:var(--text-main); font-family:monospace; letter-spacing:1px; background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 4px;">${s.password}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function exportTeacherReport() {
+            const history = JSON.parse(localStorage.getItem('attendanceHistory')) || [];
+            const period = document.getElementById('adminReportFilter').value;
+            const filteredHistory = filterHistoryByPeriod(history, period);
+            // 🐛 FIX 2: Added `|| 'Present'` to handle legacy data without breaking CSV
+            let csv = "ID,Date,Slot,Time,Status\n" + filteredHistory.map(h => `${h.studentId},${h.date},${h.slot},${h.time},${h.status || 'Present'}`).join("\n");
+            dlFile(csv, `Class_Attendance_${period}.csv`);
+        }
+
+        function exportStudentCSV() {
+            const admNo = localStorage.getItem("activeUser");
+            const history = JSON.parse(localStorage.getItem('attendanceHistory')) || [];
+            const period = document.getElementById('studentReportFilter').value;
+            const filteredHistory = filterHistoryByPeriod(history.filter(h => h.studentId === admNo), period);
+            let csv = "Date,Slot,Time,Status\n" + filteredHistory.map(h => `${h.date},${h.slot},${h.time},${h.status || 'Present'}`).join("\n");
+            dlFile(csv, `My_Attendance_${period}.csv`);
+        }
+
+        function dlFile(content, name) {
+            const blob = new Blob([content], { type: 'text/csv' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob); a.download = name; a.click();
+        }
+
+        function factoryReset() { if(confirm("Erase all data? This cannot be undone.")) { localStorage.clear(); window.location.reload(); } }
+
+        window.onload = () => {
+            const active = localStorage.getItem("activeUser");
+            if(active) {
+                const students = JSON.parse(localStorage.getItem('registeredStudents')) || [];
+                const user = students.find(s => s.admNo === active);
+                if(user) { loadDashboard(user); goToScreen('dashboard-screen'); }
+            }
+        };
+    </script>
+</body>
+</html>
