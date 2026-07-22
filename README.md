@@ -151,13 +151,7 @@ Future AI-powered features include:
 - AI Chat Assistant
 - Cloud Deployment
 
----
 
-## 📷 Screenshots
-
-> Add screenshots of your application here.
-
----
 
 ## 👩‍💻 Author
 
